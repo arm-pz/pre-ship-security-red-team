@@ -1,0 +1,9 @@
+{
+  "name": "pre-ship-security-red-team",
+  "version": "0.1.0",
+  "description": "Runs 14 authorization and abuse checks against a web app you own in an isolated environment, records evidence for each, fixes what fails, and reruns with a negative control.",
+  "author": {
+    "name": "Abdul Rahman P Z"
+  },
+  "repository": "https://github.com/arm-pz/pre-ship-security-red-team"
+}
