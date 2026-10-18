@@ -86,6 +86,16 @@ If that toggle is not safe (production connectivity, destructive side effects, e
 
 Add a durable automated regression test in the repo for each applicable finding, preferring integration tests against real middleware and the isolated datastore. Then rerun all applicable scenarios and the existing suite.
 
+Do the toggling by deletion, not by hand-typing: copy `assets/negative-control.mjs` next to that suite, list the protections you added and the checks they map to, and let it boot two throwaway copies of the app - one as committed, one with a single protection removed - on its own ports, against copies of the database, in its own log directory. It reports any protection that does not reproduce the attack when deleted, and it refuses to run at all while a guard block has no entry, so a quiet omission cannot masquerade as a clean result. For it to work, write every fix as one deletable block and let the app take its port, data file and log directory from environment variables:
+
+```js
+// GUARD note-ownership-api (S02)
+if (note.ownerId !== user.email) return notFound();
+// END GUARD note-ownership-api
+```
+
+A control with two enforcement layers cannot be falsified by deleting one of them. Name both layers as a single entry - that records the redundancy instead of hiding it.
+
 ## 6. Verify, report, clean up
 
 ```
@@ -150,4 +160,4 @@ Scenario verdicts stay in this table. A `pass` here says nothing about exposure 
 - `references/guardrails.md` - the nine gates, isolation and masking rules, request caps, cleanup.
 - `scripts/scaffold_run.mjs` - run directory, per-group result rows, briefs, env template, gitignore guard.
 - `scripts/check_results.mjs` - completeness, evidence, negative-control, and credential-leak gate.
-- `assets/` - the results table and dispatch brief templates the scaffold renders.
+- `assets/` - the results table and dispatch brief templates the scaffold renders, plus `negative-control.mjs`, the harness you copy into the app to prove each fix is load-bearing.
