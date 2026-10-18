@@ -61,7 +61,32 @@ Findings cross-reference by ID (`REDTEAM-S02`, `PREFLIGHT-01`, `PERF-03`) rather
 
 ## Example output
 
-Not yet included — a real before-and-after table will be added from an actual run against an application. What is verified today: the scaffold and checker are tested against 11 fixture outcomes (unfilled rows, code-only passes, legitimate `not-applicable` rows, open fails allowed pre-fix and blocked with `--require-fixes`, fixes without a negative control, an unmasked JWT planted in a capture), all passing.
+From a real end-to-end run on 2026-10-18 against a purpose-built disposable app on `127.0.0.1` (a dependency-free Node notes/SaaS fixture, not published; its `README.md` carries the full inventory). Environment gate resolved to `LOCAL`, so every request stayed on loopback against synthetic rows. Three record-only subagents, one per isolated account set, returned this:
+
+| scenario | before | after | falsified |
+|---|---|---|---|
+| S01 anonymous database or API access | fail CRITICAL - private collection readable with no credentials, using a key the app published itself | pass | yes |
+| S02 cross-user object access | fail CRITICAL - read, write and delete on another user's row, on both the API and the HTML route | pass | yes |
+| S03 self-service privilege escalation | fail CRITICAL - `PATCH /api/me {"role":"admin"}` persisted and unlocked the admin endpoint | pass | yes |
+| S04 password-reset token reuse | fail HIGH - same token accepted three times, never consumed, no expiry, minting unthrottled | pass | yes |
+| S05 direct request bypass of UI limits | fail HIGH - unreviewed draft published by POSTing past the disabled button | pass | yes |
+| S06 free-tier or quota bypass | fail MEDIUM - one AI surface gated on a client-supplied `x-credits` header | pass | yes |
+| S07 concurrent quota race | fail HIGH - 5 concurrent calls accepted against an allowance of 3; only 2 deducted | pass | yes |
+| S08 input validation and boundaries | fail MEDIUM - 50k-char, empty, NUL, bidi, wrong-type and non-JSON bodies all stored and read back | pass | yes |
+| S09 redirect validation | fail MEDIUM - `//evil` and `/\evil` both cleared a leading-slash test and left the origin | pass | yes |
+| S10 stored XSS | fail CRITICAL - body rendered raw, `alert()` dialog fired in a browser as a second user | pass | yes |
+| S11 SSRF | fail CRITICAL - internal loopback service fetched and its body reflected back to the caller | pass | yes |
+| S12 private response and cache isolation | fail CRITICAL - per-user profile marked `public, max-age=600` with no `Vary` | pass | yes |
+| S13 preview deployment access | pass - route required its token at baseline | pass | n/a |
+| S14 prompt injection through ingested content | fail CRITICAL - a `SYSTEM:` line in an uploaded document made the tool return another user's records | pass | yes |
+
+Every row carries the method used, the request, the response and the severity in `results/group-<n>.md`, and `check_results.mjs` refuses the run until each row is filled, evidenced and masked (`--require-fixes` additionally blocks any surviving `fail`).
+
+The fixes were then proved twice rather than asserted: the committed rerun suite returns 14 REFUSED / 0 DETECTED, and a mutation harness deletes one protection at a time on a throwaway copy of the server and requires the mapped check to flip back to DETECTED - 17 of 17 protections falsified. That second run is what makes the first one meaningful; a suite that only ever passes cannot tell you whether it can see dirt.
+
+Read the table with its limits, which the run records in `report.md`: it shows what the rig planted, not what an average app contains; six controls in the rig held at baseline, so 13-of-14 is a fixture property; the S12 proof is header-level because no shared cache sits in front of a loopback server; the browser dialog proof exists for the before state only; and the hosting-platform preview class (Vercel, Netlify, Cloudflare) was never reachable from a local run.
+
+Also verified, independently of the app: the scaffold and checker are tested against 11 fixture outcomes (unfilled rows, code-only passes, legitimate `not-applicable` rows, open fails allowed pre-fix and blocked with `--require-fixes`, fixes without a negative control, an unmasked JWT planted in a capture), all passing.
 
 ## License
 

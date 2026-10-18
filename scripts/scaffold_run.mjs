@@ -131,6 +131,10 @@ Final posture is \`HOLD\` while any \`fail\` remains against another user's data
 |---|---|---|---|---|---|---|
 ${body}
 
+## Finding records
+
+One row per scenario that ever failed, using the shared five-field record so the other pre-ship skills can cross-reference it by id instead of copying this verdict: \`finding-id\` (\`REDTEAM-<Sxx>\`), \`route\`, \`evidence-ref\`, \`severity\`, \`remediation\`.
+
 ## Not proven and not applicable
 
 Name every scenario that did not run, and why.
